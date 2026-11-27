@@ -60,7 +60,7 @@ function wrapText(value, maxChars, maxLines) {
 }
 
 async function db(path, options = {}) {
-  const response = await fetch(\`\${SUPABASE_URL}/rest/v1/\${path}\`, {
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...options,
     headers: {
       apikey: SUPABASE_KEY,
