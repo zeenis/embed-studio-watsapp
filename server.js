@@ -81,12 +81,12 @@ async function db(path, options = {}) {
 }
 
 async function getEmbed(id) {
-  const rows = await db(\`embeds?id=eq.\${encodeURIComponent(id)}&select=*\`);
+  const rows = await db(`embeds?id=eq.${encodeURIComponent(id)}&select=*`);
   return rows[0] || null;
 }
 
 function publicBase(req) {
-  return (process.env.RENDER_EXTERNAL_URL || \`\${req.protocol}://\${req.get("host")}\`).replace(/\/$/, "");
+  return (process.env.RENDER_EXTERNAL_URL || `${req.protocol}://${req.get("host")}`).replace(/\/$/, "");
 }
 
 async function makePreviewPng(embed) {
@@ -121,37 +121,37 @@ async function makePreviewPng(embed) {
 
   // Fondo alternativo si no hay imagen o no se puede descargar.
   if (!background) {
-    const fallback = Buffer.from(\`
-      <svg xmlns="http://www.w3.org/2000/svg" width="\${width}" height="\${height}">
+    const fallback = Buffer.from(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
         <defs>
           <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stop-color="#30344f"/>
             <stop offset="1" stop-color="#15161b"/>
           </linearGradient>
           <radialGradient id="glow">
-            <stop offset="0" stop-color="\${color(embed.color)}" stop-opacity=".55"/>
-            <stop offset="1" stop-color="\${color(embed.color)}" stop-opacity="0"/>
+            <stop offset="0" stop-color="${color(embed.color)}" stop-opacity=".55"/>
+            <stop offset="1" stop-color="${color(embed.color)}" stop-opacity="0"/>
           </radialGradient>
         </defs>
         <rect width="1200" height="630" fill="url(#bg)"/>
         <ellipse cx="980" cy="80" rx="520" ry="420" fill="url(#glow)"/>
-        <circle cx="1080" cy="540" r="220" fill="\${color(embed.color)}" opacity=".12"/>
-      </svg>\`);
+        <circle cx="1080" cy="540" r="220" fill="${color(embed.color)}" opacity=".12"/>
+      </svg>`);
     background = await sharp(fallback).png().toBuffer();
   }
 
   const titleLines = wrapText(embed.title || "Embed", 34, 2);
   const descriptionLines = wrapText(embed.description || "", 66, 3);
   const titleSvg = titleLines.map((line, i) =>
-    \`<text x="76" y="\${390 + i * 64}" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="#ffffff">\${escapeXml(line)}</text>\`
+    `<text x="76" y="${390 + i * 64}" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="#ffffff">${escapeXml(line)}</text>`
   ).join("");
   const descriptionStart = 485 + Math.max(0, titleLines.length - 1) * 4;
   const descriptionSvg = descriptionLines.map((line, i) =>
-    \`<text x="80" y="\${descriptionStart + i * 38}" font-family="Arial, sans-serif" font-size="27" fill="#f1f2f5">\${escapeXml(line)}</text>\`
+    `<text x="80" y="${descriptionStart + i * 38}" font-family="Arial, sans-serif" font-size="27" fill="#f1f2f5">${escapeXml(line)}</text>`
   ).join("");
 
-  const overlay = Buffer.from(\`
-    <svg xmlns="http://www.w3.org/2000/svg" width="\${width}" height="\${height}">
+  const overlay = Buffer.from(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
       <defs>
         <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#000000" stop-opacity=".05"/>
@@ -160,12 +160,12 @@ async function makePreviewPng(embed) {
         </linearGradient>
       </defs>
       <rect width="1200" height="630" fill="url(#shade)"/>
-      <rect x="0" y="0" width="12" height="630" fill="\${color(embed.color)}"/>
-      \${embed.author ? \`<text x="80" y="315" font-family="Arial, sans-serif" font-size="23" font-weight="700" letter-spacing="2" fill="#ffffff">\${escapeXml(embed.author.toUpperCase())}</text>\` : ""}
-      \${titleSvg}
-      \${descriptionSvg}
-      \${embed.footer ? \`<text x="80" y="595" font-family="Arial, sans-serif" font-size="19" fill="#d5d7dc">\${escapeXml(embed.footer)}</text>\` : ""}
-    </svg>\`);
+      <rect x="0" y="0" width="12" height="630" fill="${color(embed.color)}"/>
+      ${embed.author ? `<text x="80" y="315" font-family="Arial, sans-serif" font-size="23" font-weight="700" letter-spacing="2" fill="#ffffff">${escapeXml(embed.author.toUpperCase())}</text>` : ""}
+      ${titleSvg}
+      ${descriptionSvg}
+      ${embed.footer ? `<text x="80" y="595" font-family="Arial, sans-serif" font-size="19" fill="#d5d7dc">${escapeXml(embed.footer)}</text>` : ""}
+    </svg>`);
 
   return sharp(background)
     .composite([{ input: overlay }])
@@ -208,7 +208,7 @@ app.post("/api/embeds", async (req, res) => {
 
     res.json({
       id: embed.id,
-      url: \`\${publicBase(req)}/e/\${embed.id}\`
+      url: `${publicBase(req)}/e/${embed.id}`
     });
   } catch {
     res.status(500).json({ error: "No se pudo guardar el embed" });
@@ -230,40 +230,40 @@ app.get("/e/:id", async (req, res) => {
   const base = publicBase(req);
   const title = escapeHtml(embed.title);
   const description = escapeHtml(embed.description);
-  const url = \`\${base}\${req.originalUrl}\`;
-  const imageUrl = \`\${base}/preview/\${embed.id}.png\`;
+  const url = `${base}${req.originalUrl}`;
+  const imageUrl = `${base}/preview/${embed.id}.png`;
 
   res.set("Cache-Control", "public, max-age=300");
-  res.type("html").send(\`<!DOCTYPE html>
+  res.type("html").send(`<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>\${title}</title>
-<meta name="description" content="\${description}">
-<link rel="canonical" href="\${escapeHtml(url)}">
+<title>${title}</title>
+<meta name="description" content="${description}">
+<link rel="canonical" href="${escapeHtml(url)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Embed Studio">
-<meta property="og:title" content="\${title}">
-<meta property="og:description" content="\${description}">
-<meta property="og:url" content="\${escapeHtml(url)}">
-<meta property="og:image" content="\${escapeHtml(imageUrl)}">
-<meta property="og:image:secure_url" content="\${escapeHtml(imageUrl)}">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:url" content="${escapeHtml(url)}">
+<meta property="og:image" content="${escapeHtml(imageUrl)}">
+<meta property="og:image:secure_url" content="${escapeHtml(imageUrl)}">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="\${title}">
+<meta property="og:image:alt" content="${title}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="\${title}">
-<meta name="twitter:description" content="\${description}">
-<meta name="twitter:image" content="\${escapeHtml(imageUrl)}">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${description}">
+<meta name="twitter:image" content="${escapeHtml(imageUrl)}">
 </head>
 <body>
-<h1>\${title}</h1>
-<p>\${description}</p>
-<img src="\${escapeHtml(imageUrl)}" alt="">
+<h1>${title}</h1>
+<p>${description}</p>
+<img src="${escapeHtml(imageUrl)}" alt="">
 </body>
-</html>\`);
+</html>`);
 });
 
 // Imagen PNG grande (1200 x 630) utilizada por WhatsApp
